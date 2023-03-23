@@ -7,9 +7,10 @@ library(leaflet)
 coordinates_list <- read_xlsx("./Data/zip_codes_states.xlsx")
 amenity_scores <- read_csv("./Data/amenity_data_scored.csv")
 housing_scores <- read_xlsx("./Data/housing_data.xlsx")
-#housing_scores$housing_score <- abs(housing_scores$final_score - 6)
+housing_scores$housing_score <- abs(housing_scores$housing_score - 6)
 economy_scores <- read_xlsx("./Data/local_economy.xlsx")
 traffic_scores <- read_xlsx("./Data/traffic.xlsx")
+traffic_scores$traffic_score <- abs(traffic_scores$traffic_score - 6)
 
 score_columns <- c('pop_score', 'housing_score', 'economic_score', 'amenity_score', 'traffic_score')
 
@@ -43,20 +44,21 @@ ui <- fluidPage(
   
   fluidRow(
     column(12,
-           h4("Rate each attribute on a scale of 1 - 5 for importance:", style = "text-align: center")
+           h3(HTML("<b>Top 5 Recommended Neighborhoods</b>"), style = "text-align: center"),
+           h4("Set your preferences for each attribute on a scale of 1 - 5.", style = "text-align: center")
            )),
     
   fluidRow(
     column(2),
     column(4,
-           sliderInput("population_rating", "Population", min=1, max=5, value=3, step=0.5),
-           sliderInput("housing_rating", "Real Estate", min=1, max=5, value=3, step=0.5),
+           sliderInput("population_rating", "Population Size", min=1, max=5, value=3, step=0.5),
+           sliderInput("housing_rating", "Real Estate Affordability", min=1, max=5, value=3, step=0.5),
            sliderInput("economy_rating", "Job Market", min=1, max=5, value=3, step=0.5),
            ),
     
     column(4,
-           sliderInput("amenities_rating", "Amenities", min=1, max=5, value=3, step=0.5),
-           sliderInput("traffic_rating", "Traffic", min=1, max=5, value=3, step=0.5)),
+           sliderInput("amenities_rating", "Local Amenities", min=1, max=5, value=3, step=0.5),
+           sliderInput("traffic_rating", "Low Traffic", min=1, max=5, value=3, step=0.5)),
     column(2)
   )
   
@@ -132,7 +134,7 @@ server <- function(input, output) {
     if(!(click$id %in% nearest()[,'zipcode']))
       return()
     
-    current_point <- data[data['zipcode']== click$id,]
+    current_point <- data[data['zipcode'] == click$id,]
     cp_weights <- current_point[score_columns] / sum(current_point[score_columns])
     
     distances <- sqrt(rowSums(sweep(as.matrix(data[,c("latitude", "longitude")]), 2, as.matrix(current_point[c('latitude', 'longitude')]))**2))
@@ -140,7 +142,7 @@ server <- function(input, output) {
     
     nn <- as.matrix(near[, score_columns]) %*% diag(cp_weights)
     nn2 <- exp(nn)
-    nn3 <- sweep(nn2, 2, as.matrix(current_point[score_columns]))
+    nn3 <- sweep(nn2, 2, exp(as.matrix(current_point[score_columns]) %*% diag(cp_weights)))
     nn4 <- nn3**2
     nn5 <- rowSums(nn4)
     nn6 <- sqrt(nn5)
