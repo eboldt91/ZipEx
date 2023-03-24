@@ -30,6 +30,7 @@ red_icons <- iconList(
   red5 = makeIcon("./Data/imgs/red5.png", iconWidth = 30, iconHeight = 44, iconAnchorX = 15, iconAnchorY = 44, popupAnchorX = 1, popupAnchorY = -40)
 )
 
+
 ui <- fluidPage(
   navbarPage(
     div(img(src="https://brand.gatech.edu/sites/default/files/inline-images/extended-RGB.png", height="50px", style='margin-right:100px'), "ZipEx: Zip Code Explorer")
@@ -45,26 +46,77 @@ ui <- fluidPage(
   fluidRow(
     column(12,
            h3(HTML("<b>Top 5 Recommended Neighborhoods</b>"), style = "text-align: center"),
-           h4("Set your preferences for each attribute on a scale of 1 - 5.", style = "text-align: center")
+           h4("Set your preferences for each attribute on a scale of 1 - 5", style = "text-align: center"),
+           h4("and check the box next to your most important attribute.", style = "text-align: center")
            )),
     
   fluidRow(
-    column(2),
+    column(2,
+           div(checkboxInput("pop_check", label = "", value = FALSE), style= "text-align: right; margin-top:0px; margin-bottom:75px"),
+           div(checkboxInput("house_check", label = "", value = FALSE), style= "text-align: right; margin-top:0px; margin-bottom:75px"),
+           div(checkboxInput("eco_check", label = "", value = FALSE), style= "text-align: right; margin-top:0px")),
     column(4,
            sliderInput("population_rating", "Population Size", min=1, max=5, value=3, step=0.5),
            sliderInput("housing_rating", "Real Estate Affordability", min=1, max=5, value=3, step=0.5),
-           sliderInput("economy_rating", "Job Market", min=1, max=5, value=3, step=0.5),
+           sliderInput("economy_rating", "Job Market", min=1, max=5, value=3, step=0.5)
            ),
-    
+    column(1,
+           div(checkboxInput("amenity_check", label = "", value = FALSE), style= "text-align: right; margin-top:0px; margin-bottom:75px"),
+           div(checkboxInput("traffic_check", label = "", value = FALSE), style= "text-align: right; margin-top:0px")),
     column(4,
            sliderInput("amenities_rating", "Local Amenities", min=1, max=5, value=3, step=0.5),
            sliderInput("traffic_rating", "Low Traffic", min=1, max=5, value=3, step=0.5)),
-    column(2)
+    column(1)
   )
   
 )
 
 server <- function(input, output) {
+  
+  observeEvent(input$pop_check, {
+    if(input$pop_check == TRUE){
+      updateCheckboxInput(inputId='house_check', value=FALSE)
+      updateCheckboxInput(inputId='eco_check', value=FALSE)
+      updateCheckboxInput(inputId='amenity_check', value=FALSE)
+      updateCheckboxInput(inputId='traffic_check', value=FALSE)
+    }
+  })
+  
+  observeEvent(input$house_check, {
+    if(input$house_check == TRUE){
+      updateCheckboxInput(inputId='pop_check', value=FALSE)
+      updateCheckboxInput(inputId='eco_check', value=FALSE)
+      updateCheckboxInput(inputId='amenity_check', value=FALSE)
+      updateCheckboxInput(inputId='traffic_check', value=FALSE)
+    }
+  })
+  
+  observeEvent(input$eco_check, {
+    if(input$eco_check == TRUE){
+      updateCheckboxInput(inputId='pop_check', value=FALSE)
+      updateCheckboxInput(inputId='house_check', value=FALSE)
+      updateCheckboxInput(inputId='amenity_check', value=FALSE)
+      updateCheckboxInput(inputId='traffic_check', value=FALSE)
+    }
+  })
+  
+  observeEvent(input$amenity_check, {
+    if(input$amenity_check == TRUE){
+      updateCheckboxInput(inputId='pop_check', value=FALSE)
+      updateCheckboxInput(inputId='house_check', value=FALSE)
+      updateCheckboxInput(inputId='eco_check', value=FALSE)
+      updateCheckboxInput(inputId='traffic_check', value=FALSE)
+    }
+  })  
+  
+  observeEvent(input$traffic_check, {
+    if(input$traffic_check == TRUE){
+      updateCheckboxInput(inputId='pop_check', value=FALSE)
+      updateCheckboxInput(inputId='house_check', value=FALSE)
+      updateCheckboxInput(inputId='eco_check', value=FALSE)
+      updateCheckboxInput(inputId='amenity_check', value=FALSE)
+    }
+  })  
   
   data = amenity_scores[,c('zipcode', 'population', 'pop_score', 'amenities_per_sqmile', 'amenity_score')] %>%
           merge(housing_scores[,c('zipcode', 'city', 'state', 'avg_home_value', 'avg_rent', 'housing_score')], by='zipcode') %>%
@@ -73,18 +125,26 @@ server <- function(input, output) {
           merge(coordinates_list[, c('zipcode', 'latitude', 'longitude')], by = 'zipcode') %>%
           filter(!is.na(longitude) & !is.na(latitude))
   
+  check_boxes = reactive({
+    c(input$pop_check, input$house_check, input$eco_check, input$amenity_check, input$traffic_check)
+  })
+  
   knn_data = data[,c('zipcode', score_columns)]
   
   weights = reactive({
     c(input$population_rating[1], input$housing_rating[1], input$economy_rating[1], input$amenities_rating[1], input$traffic_rating[1]) / sum(c(input$population_rating[1], input$housing_rating[1], input$economy_rating[1], input$amenities_rating[1], input$traffic_rating[1]))
   })
   
+  fav_weights = reactive({
+    (check_boxes() * 1 + 1) * weights()
+  })
+  
   new_point = reactive({
-    exp(c(input$population_rating[1], input$housing_rating[1], input$economy_rating[1], input$amenities_rating[1], input$traffic_rating[1]) %*% diag(weights()))
+    exp(c(input$population_rating[1], input$housing_rating[1], input$economy_rating[1], input$amenities_rating[1], input$traffic_rating[1]) %*% diag(fav_weights()))
   })
     
   dis = reactive({
-    sqrt(rowSums(sweep(exp(as.matrix(knn_data[,score_columns]) %*% diag(weights())), 2, new_point())**2))
+    sqrt(rowSums(sweep(exp(as.matrix(knn_data[,score_columns]) %*% diag(fav_weights())), 2, new_point())**2))
   })
   
   dis2 = reactive({
@@ -126,7 +186,7 @@ server <- function(input, output) {
     
     )
   
-  observe({
+  observeEvent(input$map_marker_click, {
     click <- input$map_marker_click
     if(is.null(click))
       return()
