@@ -149,7 +149,7 @@ server <- function(input, output) {
   })
   
   fav_weights = reactive({
-    weights() + (check_boxes() * 2 + 1)
+    weights() + check_boxes()
   })
   
   new_point = reactive({
