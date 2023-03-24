@@ -44,31 +44,44 @@ ui <- fluidPage(
   hr(),
   
   fluidRow(
-    column(12,
+    column(2),
+    column(8,
            h3(HTML("<b>Top 5 Recommended Neighborhoods</b>"), style = "text-align: center"),
-           h4("Set your preferences for each attribute on a scale of 1 - 5", style = "text-align: center"),
-           h4("and check the box next to your most important attribute.", style = "text-align: center")
-           )),
+           
+           h4(HTML("<b>Instructions:</b>")),
+           h4("Set your preferences for each attribute on a scale of 1 - 5 and check the box next to your most important attribute."),
+           h4(HTML("<b>Output:</b>")),
+           h4("The map will provide the top 5 neighborhoods matching your search criteria and provide insights into each attribute for each location.")
+           ),
+    column(2),
+    ),
     
   fluidRow(
-    column(2,
-           div(checkboxInput("pop_check", label = "", value = FALSE), style= "text-align: right; margin-top:0px; margin-bottom:75px"),
-           div(checkboxInput("house_check", label = "", value = FALSE), style= "text-align: right; margin-top:0px; margin-bottom:75px"),
-           div(checkboxInput("eco_check", label = "", value = FALSE), style= "text-align: right; margin-top:0px")),
+    column(2),
+    
     column(4,
-           sliderInput("population_rating", "Population Size", min=1, max=5, value=3, step=0.5),
-           sliderInput("housing_rating", "Real Estate Affordability", min=1, max=5, value=3, step=0.5),
-           sliderInput("economy_rating", "Job Market", min=1, max=5, value=3, step=0.5)
+           sliderInput("population_rating",
+                       div(checkboxInput("pop_check", label = h5(HTML("<b>Population Size</b>")), value = FALSE)),
+                       min=1, max=5, value=3, step=0.5),
+           sliderInput("housing_rating",
+                       div(checkboxInput("house_check", label = h5(HTML("<b>Real Estate Affordability</b>")), value = FALSE)),
+                       min=1, max=5, value=3, step=0.5),
+           sliderInput("economy_rating",
+                       div(checkboxInput("eco_check", label = h5(HTML("<b>Job Market</b>")), value = FALSE)),
+                       min=1, max=5, value=3, step=0.5)
            ),
-    column(1,
-           div(checkboxInput("amenity_check", label = "", value = FALSE), style= "text-align: right; margin-top:0px; margin-bottom:75px"),
-           div(checkboxInput("traffic_check", label = "", value = FALSE), style= "text-align: right; margin-top:0px")),
+           
     column(4,
-           sliderInput("amenities_rating", "Local Amenities", min=1, max=5, value=3, step=0.5),
-           sliderInput("traffic_rating", "Low Traffic", min=1, max=5, value=3, step=0.5)),
-    column(1)
+           sliderInput("amenities_rating",
+                       div(checkboxInput("amenity_check", label = h5(HTML("<b>Local Amenities</b>")), value = FALSE)),
+                       min=1, max=5, value=3, step=0.5),
+           sliderInput("traffic_rating",
+                       div(checkboxInput("traffic_check", label = h5(HTML("<b>Low Traffic</b>")), value = FALSE)), 
+                       min=1, max=5, value=3, step=0.5)
+           ),
+    
+    column(2)
   )
-  
 )
 
 server <- function(input, output) {
