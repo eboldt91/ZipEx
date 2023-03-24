@@ -49,9 +49,9 @@ ui <- fluidPage(
            h3(HTML("<b>Top 5 Recommended Neighborhoods</b>"), style = "text-align: center"),
            
            h4(HTML("<b>Instructions:</b>")),
-           h4("Set your preferences for each attribute on a scale of 1 - 5 and check the box next to your most important attribute."),
+           h4("Set your preferences for each attribute on a scale of 1 - 5, with 1 being low and 5 being high, and check the box next to your most important attribute."),
            h4(HTML("<b>Output:</b>")),
-           h4("The map will provide the top 5 neighborhoods matching your search criteria and provide insights into each attribute for each location.")
+           h4("The map will provide the top 5 neighborhoods matching your search criteria. Clicking each marker will provide insights into each location and provide alternative recommendations within the area.")
            ),
     column(2),
     ),
@@ -149,7 +149,7 @@ server <- function(input, output) {
   })
   
   fav_weights = reactive({
-    (check_boxes() * 1 + 1) * weights()
+    weights() + (check_boxes() * 2 + 1)
   })
   
   new_point = reactive({
