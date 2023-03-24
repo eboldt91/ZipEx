@@ -160,7 +160,9 @@ server <- function(input, output) {
       addTiles() %>%
       setView(lng = -98, lat = 40, zoom = 4) %>%
       addMarkers(data = nearest(),
-                 label= ~paste("Rank:", which(nearest()$zipcode == zipcode)),
+                 label= ~lapply(paste("<b>Rank:", which(nearest()$zipcode == zipcode), '</b>',
+                               "<br><b>Zip code: ", zipcode, "</b>",
+                               "<br><b>", city, ", ", state, "</b>"), HTML),
                  popup = ~paste("<b>Rank: ", which(nearest()$zipcode == zipcode), "</b>",
                                 "<br><b>Zip code: ", zipcode, "</b>",
                                 "<br><b>", city, ", ", state, "</b>",
