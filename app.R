@@ -12,7 +12,7 @@ economy_scores <- read_xlsx("./Data/local_economy.xlsx")
 traffic_scores <- read_xlsx("./Data/traffic.xlsx")
 traffic_scores$traffic_score <- abs(traffic_scores$traffic_score - 6)
 
-score_columns <- c('pop_score', 'housing_score', 'economic_score', 'amenity_score', 'traffic_score')
+score_columns <- c('pop_score', 'housing_score', 'eco_score', 'amenity_score', 'traffic_score')
 
 blue_icons <- iconList(
   blue1 = makeIcon("./Data/imgs/blue1.png", iconWidth = 30, iconHeight = 44, iconAnchorX = 15, iconAnchorY = 44, popupAnchorX = 1, popupAnchorY = -40),
@@ -61,7 +61,7 @@ ui <- fluidPage(
     
     column(4,
            sliderInput("population_rating",
-                       div(checkboxInput("pop_check", label = h5(HTML("<b>Population Size</b>")), value = FALSE)),
+                       div(checkboxInput("pop_check", label = h5(HTML("<b>Population Density</b>")), value = FALSE)),
                        min=1, max=5, value=3, step=0.5),
            sliderInput("housing_rating",
                        div(checkboxInput("house_check", label = h5(HTML("<b>Real Estate Affordability</b>")), value = FALSE)),
@@ -76,7 +76,7 @@ ui <- fluidPage(
                        div(checkboxInput("amenity_check", label = h5(HTML("<b>Local Amenities</b>")), value = FALSE)),
                        min=1, max=5, value=3, step=0.5),
            sliderInput("traffic_rating",
-                       div(checkboxInput("traffic_check", label = h5(HTML("<b>Low Traffic</b>")), value = FALSE)), 
+                       div(checkboxInput("traffic_check", label = h5(HTML("<b>Traffic Sparsity</b>")), value = FALSE)), 
                        min=1, max=5, value=3, step=0.5)
            ),
     
@@ -133,7 +133,7 @@ server <- function(input, output) {
   
   data = amenity_scores[,c('zipcode', 'population', 'pop_score', 'amenities_per_sqmile', 'amenity_score')] %>%
           merge(housing_scores[,c('zipcode', 'city', 'state', 'avg_home_value', 'avg_rent', 'housing_score')], by='zipcode') %>%
-          merge(economy_scores[,c('zipcode', 'avg_salary', 'economic_score')], by='zipcode') %>%
+          merge(economy_scores[,c('zipcode', 'avg_salary', 'eco_score')], by='zipcode') %>%
           merge(traffic_scores[,c('zipcode', 'traffic_score')], by='zipcode') %>%
           merge(coordinates_list[, c('zipcode', 'latitude', 'longitude')], by = 'zipcode') %>%
           filter(!is.na(longitude) & !is.na(latitude))
@@ -181,7 +181,7 @@ server <- function(input, output) {
                                 "<br><b>", city, ", ", state, "</b>",
                                 "<br>Population: ", paste("<a href='//www.unitedstateszipcodes.org/", zipcode, "/#stats", "', target='_blank'>", round(pop_score, 2), "</a>", sep=''),
                                 "<br>Housing: ", paste("<a href='//www.zillow.com/", city, "-", state, "-", zipcode, "', target='_blank'>", round(housing_score, 2), "</a>", sep=''),
-                                "<br>Job Market: ", paste("<a href='//www.glassdoor.com/Search/results.htm?keyword=&locName=", city, "%2C%20", state, '%20(US)',  "', target='_blank'>", round(economic_score, 2), "</a>", sep=''),
+                                "<br>Job Market: ", paste("<a href='//www.glassdoor.com/Search/results.htm?keyword=&locName=", city, "%2C%20", state, '%20(US)',  "', target='_blank'>", round(eco_score, 2), "</a>", sep=''),
                                 "<br>Amenities: ", paste("<a href='//www.google.com/search?q=entertainment+", zipcode, "', target='_blank'>", round(amenity_score, 2), "</a>", sep=''),
                                 "<br>Traffic: ", paste("<a href='//www.google.com/search?q=traffic+", zipcode,"', target='_blank'>", round(traffic_score, 2), "</a>", sep=''),
                                 "<br>", paste("<a href='//www.google.com/search?q=", zipcode, "+", city, "+", state, "', target='_blank'>Learn More</a>", sep=''),
@@ -235,7 +235,7 @@ server <- function(input, output) {
                                       "<br><b>", city, ", ", state, "</b>",
                                       "<br>Population: ", paste("<a href='//www.unitedstateszipcodes.org/", zipcode, "/#stats", "', target='_blank'>", round(pop_score, 2), "</a>", sep=''),
                                       "<br>Housing: ", paste("<a href='//www.zillow.com/", city, "-", state, "-", zipcode, "', target='_blank'>", round(housing_score, 2), "</a>", sep=''),
-                                      "<br>Job Market: ", paste("<a href='//www.glassdoor.com/Search/results.htm?keyword=&locName=", city, "%2C%20", state, '%20(US)',  "', target='_blank'>", round(economic_score, 2), "</a>", sep=''),
+                                      "<br>Job Market: ", paste("<a href='//www.glassdoor.com/Search/results.htm?keyword=&locName=", city, "%2C%20", state, '%20(US)',  "', target='_blank'>", round(eco_score, 2), "</a>", sep=''),
                                       "<br>Amenities: ", paste("<a href='//www.google.com/search?q=entertainment+", zipcode, "', target='_blank'>", round(amenity_score, 2), "</a>", sep=''),
                                       "<br>Traffic: ", paste("<a href='//www.google.com/search?q=traffic+", zipcode,"', target='_blank'>", round(traffic_score, 2), "</a>", sep=''),
                                       "<br>", paste("<a href='//www.google.com/search?q=", zipcode, "+", city, "+", state, "', target='_blank'>Learn More</a>", sep=''),
