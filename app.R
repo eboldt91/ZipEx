@@ -44,8 +44,7 @@ ui <- fluidPage(
   hr(),
   
   fluidRow(
-    column(2),
-    column(8,
+    column(4,
            h3(HTML("<b>Top 5 Recommended Neighborhoods</b>"), style = "text-align: center"),
            
            h4(HTML("<b>Instructions:</b>")),
@@ -53,34 +52,27 @@ ui <- fluidPage(
            h4(HTML("<b>Output:</b>")),
            h4("The map will provide the top 5 neighborhoods matching your search criteria. Clicking each marker will provide insights into each location and provide alternative recommendations within the area.")
            ),
-    column(2),
-    ),
-    
-  fluidRow(
-    column(2),
     
     column(4,
            sliderInput("population_rating",
                        div(checkboxInput("pop_check", label = h5(HTML("<b>Population Density</b>")), value = FALSE)),
-                       min=1, max=5, value=3, step=0.5),
+                       min=1, max=5, value=3, step=0.1),
            sliderInput("housing_rating",
                        div(checkboxInput("house_check", label = h5(HTML("<b>Real Estate Affordability</b>")), value = FALSE)),
-                       min=1, max=5, value=3, step=0.5),
+                       min=1, max=5, value=3, step=0.1),
            sliderInput("economy_rating",
                        div(checkboxInput("eco_check", label = h5(HTML("<b>Job Market</b>")), value = FALSE)),
-                       min=1, max=5, value=3, step=0.5)
-           ),
-           
+                       min=1, max=5, value=3, step=0.1)
+    ),
+    
     column(4,
            sliderInput("amenities_rating",
                        div(checkboxInput("amenity_check", label = h5(HTML("<b>Local Amenities</b>")), value = FALSE)),
-                       min=1, max=5, value=3, step=0.5),
+                       min=1, max=5, value=3, step=0.1),
            sliderInput("traffic_rating",
                        div(checkboxInput("traffic_check", label = h5(HTML("<b>Traffic Sparsity</b>")), value = FALSE)), 
-                       min=1, max=5, value=3, step=0.5)
-           ),
-    
-    column(2)
+                       min=1, max=5, value=3, step=0.1)
+    )
   )
 )
 
