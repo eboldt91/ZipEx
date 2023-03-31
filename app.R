@@ -209,7 +209,7 @@ server <- function(input, output) {
  })
   
   output$table = renderDataTable(
-    data.frame(Rank=c(1:20547), data[dis2()$ix,c('zipcode', 'city', 'state', 'population', 'avg_home_value', 'avg_rent', 'avg_salary', 'avg_temp', 'amenities_per_sqmile')]),
+    data.frame(Rank=c(1:nrow(data)), data[dis2()$ix,c('zipcode', 'city', 'state', 'population', 'avg_home_value', 'avg_rent', 'avg_salary', 'avg_temp', 'amenities_per_sqmile')]),
     options = list(
       lengthMenu = list(c(5, 10, 25, 50, 100), c('5', '10', '25', '50', '100')),
       pageLength = 5)
