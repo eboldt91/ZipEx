@@ -9,10 +9,11 @@ amenity_scores <- read_csv("./Data/amenity_data_scored.csv")
 housing_scores <- read_xlsx("./Data/housing_data.xlsx")
 housing_scores$housing_score <- abs(housing_scores$housing_score - 6)
 economy_scores <- read_xlsx("./Data/local_economy.xlsx")
+climate_scores <- read_xlsx("./Data/climate_data.xlsx")
 traffic_scores <- read_xlsx("./Data/traffic.xlsx")
 traffic_scores$traffic_score <- abs(traffic_scores$traffic_score - 6)
 
-score_columns <- c('pop_score', 'housing_score', 'eco_score', 'amenity_score', 'traffic_score')
+score_columns <- c('pop_score', 'housing_score', 'eco_score','climate_score', 'amenity_score', 'traffic_score')
 
 blue_icons <- iconList(
   blue1 = makeIcon("./Data/imgs/blue1.png", iconWidth = 30, iconHeight = 44, iconAnchorX = 15, iconAnchorY = 44, popupAnchorX = 1, popupAnchorY = -40),
@@ -66,6 +67,9 @@ ui <- fluidPage(
     ),
     
     column(4,
+           sliderInput("climate_rating",
+                       div(checkboxInput("climate_check", label = h5(HTML("<b>Warm Climate</b>")), value = FALSE)),
+                       min=1, max=5, value=3, step=0.1),
            sliderInput("amenities_rating",
                        div(checkboxInput("amenity_check", label = h5(HTML("<b>Local Amenities</b>")), value = FALSE)),
                        min=1, max=5, value=3, step=0.1),
@@ -82,6 +86,7 @@ server <- function(input, output) {
     if(input$pop_check == TRUE){
       updateCheckboxInput(inputId='house_check', value=FALSE)
       updateCheckboxInput(inputId='eco_check', value=FALSE)
+      updateCheckboxInput(inputId='climate_check', value=FALSE)
       updateCheckboxInput(inputId='amenity_check', value=FALSE)
       updateCheckboxInput(inputId='traffic_check', value=FALSE)
     }
@@ -90,6 +95,17 @@ server <- function(input, output) {
   observeEvent(input$house_check, {
     if(input$house_check == TRUE){
       updateCheckboxInput(inputId='pop_check', value=FALSE)
+      updateCheckboxInput(inputId='eco_check', value=FALSE)
+      updateCheckboxInput(inputId='climate_check', value=FALSE)
+      updateCheckboxInput(inputId='amenity_check', value=FALSE)
+      updateCheckboxInput(inputId='traffic_check', value=FALSE)
+    }
+  })
+  
+  observeEvent(input$climate_check, {
+    if(input$house_check == TRUE){
+      updateCheckboxInput(inputId='pop_check', value=FALSE)
+      updateCheckboxInput(inputId='house_check', value=FALSE)
       updateCheckboxInput(inputId='eco_check', value=FALSE)
       updateCheckboxInput(inputId='amenity_check', value=FALSE)
       updateCheckboxInput(inputId='traffic_check', value=FALSE)
@@ -100,6 +116,7 @@ server <- function(input, output) {
     if(input$eco_check == TRUE){
       updateCheckboxInput(inputId='pop_check', value=FALSE)
       updateCheckboxInput(inputId='house_check', value=FALSE)
+      updateCheckboxInput(inputId='climate_check', value=FALSE)
       updateCheckboxInput(inputId='amenity_check', value=FALSE)
       updateCheckboxInput(inputId='traffic_check', value=FALSE)
     }
@@ -110,6 +127,7 @@ server <- function(input, output) {
       updateCheckboxInput(inputId='pop_check', value=FALSE)
       updateCheckboxInput(inputId='house_check', value=FALSE)
       updateCheckboxInput(inputId='eco_check', value=FALSE)
+      updateCheckboxInput(inputId='climate_check', value=FALSE)
       updateCheckboxInput(inputId='traffic_check', value=FALSE)
     }
   })  
@@ -119,6 +137,7 @@ server <- function(input, output) {
       updateCheckboxInput(inputId='pop_check', value=FALSE)
       updateCheckboxInput(inputId='house_check', value=FALSE)
       updateCheckboxInput(inputId='eco_check', value=FALSE)
+      updateCheckboxInput(inputId='climate_check', value=FALSE)
       updateCheckboxInput(inputId='amenity_check', value=FALSE)
     }
   })  
@@ -127,25 +146,28 @@ server <- function(input, output) {
           merge(housing_scores[,c('zipcode', 'city', 'state', 'avg_home_value', 'avg_rent', 'housing_score')], by='zipcode') %>%
           merge(economy_scores[,c('zipcode', 'avg_salary', 'eco_score')], by='zipcode') %>%
           merge(traffic_scores[,c('zipcode', 'traffic_score')], by='zipcode') %>%
+          merge(climate_scores[,c('zipcode', 'avg_temp', 'climate_score')], by='zipcode') %>%
           merge(coordinates_list[, c('zipcode', 'latitude', 'longitude')], by = 'zipcode') %>%
           filter(!is.na(longitude) & !is.na(latitude))
   
   check_boxes = reactive({
-    c(input$pop_check, input$house_check, input$eco_check, input$amenity_check, input$traffic_check)
+    c(input$pop_check, input$house_check, input$eco_check, input$climate_check, input$amenity_check, input$traffic_check)
   })
   
   knn_data = data[,c('zipcode', score_columns)]
   
-  weights = reactive({
-    c(input$population_rating[1], input$housing_rating[1], input$economy_rating[1], input$amenities_rating[1], input$traffic_rating[1]) / sum(c(input$population_rating[1], input$housing_rating[1], input$economy_rating[1], input$amenities_rating[1], input$traffic_rating[1]))
-  })
+  #weights = reactive({
+  #  c(input$population_rating[1], input$housing_rating[1], input$economy_rating[1], input$amenities_rating[1], input$traffic_rating[1]) / sum(c(input$population_rating[1], input$housing_rating[1], input$economy_rating[1], input$amenities_rating[1], input$traffic_rating[1]))
+  #})
+  
+  weights = c(1, 1, 1, 1, 1, 1) / 5
   
   fav_weights = reactive({
-    weights() + check_boxes()
+    weights + check_boxes()
   })
   
   new_point = reactive({
-    exp(c(input$population_rating[1], input$housing_rating[1], input$economy_rating[1], input$amenities_rating[1], input$traffic_rating[1]) %*% diag(fav_weights()))
+    exp(c(input$population_rating[1], input$housing_rating[1], input$economy_rating[1], input$climate_rating[1], input$amenities_rating[1], input$traffic_rating[1]) %*% diag(fav_weights()))
   })
     
   dis = reactive({
@@ -174,6 +196,7 @@ server <- function(input, output) {
                                 "<br>Population: ", paste("<a href='//www.unitedstateszipcodes.org/", zipcode, "/#stats", "', target='_blank'>", round(pop_score, 2), "</a>", sep=''),
                                 "<br>Housing: ", paste("<a href='//www.zillow.com/", city, "-", state, "-", zipcode, "', target='_blank'>", round(housing_score, 2), "</a>", sep=''),
                                 "<br>Job Market: ", paste("<a href='//www.glassdoor.com/Search/results.htm?keyword=&locName=", city, "%2C%20", state, '%20(US)',  "', target='_blank'>", round(eco_score, 2), "</a>", sep=''),
+                                "<br>Climate: ", paste("<a href='//weather.com/weather/monthly/l/", zipcode,  "', target='_blank'>", round(climate_score, 2), "</a>", sep=''),
                                 "<br>Amenities: ", paste("<a href='//www.google.com/search?q=entertainment+", zipcode, "', target='_blank'>", round(amenity_score, 2), "</a>", sep=''),
                                 "<br>Traffic: ", paste("<a href='//www.google.com/search?q=traffic+", zipcode,"', target='_blank'>", round(traffic_score, 2), "</a>", sep=''),
                                 "<br>", paste("<a href='//www.google.com/search?q=", zipcode, "+", city, "+", state, "', target='_blank'>Learn More</a>", sep=''),
@@ -186,7 +209,7 @@ server <- function(input, output) {
  })
   
   output$table = renderDataTable(
-    data.frame(Rank=c(1:20547), data[dis2()$ix,c('zipcode', 'city', 'state', 'population', 'avg_home_value', 'avg_rent', 'avg_salary', 'amenities_per_sqmile')]),
+    data.frame(Rank=c(1:20547), data[dis2()$ix,c('zipcode', 'city', 'state', 'population', 'avg_home_value', 'avg_rent', 'avg_salary', 'avg_temp', 'amenities_per_sqmile')]),
     options = list(
       lengthMenu = list(c(5, 10, 25, 50, 100), c('5', '10', '25', '50', '100')),
       pageLength = 5)
@@ -227,6 +250,7 @@ server <- function(input, output) {
                                       "<br><b>", city, ", ", state, "</b>",
                                       "<br>Population: ", paste("<a href='//www.unitedstateszipcodes.org/", zipcode, "/#stats", "', target='_blank'>", round(pop_score, 2), "</a>", sep=''),
                                       "<br>Housing: ", paste("<a href='//www.zillow.com/", city, "-", state, "-", zipcode, "', target='_blank'>", round(housing_score, 2), "</a>", sep=''),
+                                      "<br>Climate: ", paste("<a href='//weather.com/weather/monthly/l/", zipcode,  "', target='_blank'>", round(climate_score, 2), "</a>", sep=''),
                                       "<br>Job Market: ", paste("<a href='//www.glassdoor.com/Search/results.htm?keyword=&locName=", city, "%2C%20", state, '%20(US)',  "', target='_blank'>", round(eco_score, 2), "</a>", sep=''),
                                       "<br>Amenities: ", paste("<a href='//www.google.com/search?q=entertainment+", zipcode, "', target='_blank'>", round(amenity_score, 2), "</a>", sep=''),
                                       "<br>Traffic: ", paste("<a href='//www.google.com/search?q=traffic+", zipcode,"', target='_blank'>", round(traffic_score, 2), "</a>", sep=''),
