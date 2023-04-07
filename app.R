@@ -58,7 +58,7 @@ ui <- fluidPage(
                        selected = 5),
            h4("Set your preferences for each attribute on a scale of 1 - 5, with 1 being low and 5 being high, and check the box next to your most important attribute."),
            h4(HTML("<b>Output:</b>")),
-           h4("The map will provide the top 5 neighborhoods matching your search criteria. Clicking each marker will provide insights into each location and provide alternative recommendations within the area.")
+           h4(HTML("The map will provide the top <i>N</i> neighborhoods matching your search criteria. Clicking each marker will provide insights into each location and provide alternative recommendations within the area."))
            ),
     
     column(4,
