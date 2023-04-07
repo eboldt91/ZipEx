@@ -20,7 +20,12 @@ blue_icons <- iconList(
   blue2 = makeIcon("./Data/imgs/blue2.png", iconWidth = 30, iconHeight = 44, iconAnchorX = 15, iconAnchorY = 44, popupAnchorX = 1, popupAnchorY = -40),
   blue3 = makeIcon("./Data/imgs/blue3.png", iconWidth = 30, iconHeight = 44, iconAnchorX = 15, iconAnchorY = 44, popupAnchorX = 1, popupAnchorY = -40),
   blue4 = makeIcon("./Data/imgs/blue4.png", iconWidth = 30, iconHeight = 44, iconAnchorX = 15, iconAnchorY = 44, popupAnchorX = 1, popupAnchorY = -40),
-  blue5 = makeIcon("./Data/imgs/blue5.png", iconWidth = 30, iconHeight = 44, iconAnchorX = 15, iconAnchorY = 44, popupAnchorX = 1, popupAnchorY = -40)
+  blue5 = makeIcon("./Data/imgs/blue5.png", iconWidth = 30, iconHeight = 44, iconAnchorX = 15, iconAnchorY = 44, popupAnchorX = 1, popupAnchorY = -40),
+  blue6 = makeIcon("./Data/imgs/blue6.png", iconWidth = 30, iconHeight = 44, iconAnchorX = 15, iconAnchorY = 44, popupAnchorX = 1, popupAnchorY = -40),
+  blue7 = makeIcon("./Data/imgs/blue7.png", iconWidth = 30, iconHeight = 44, iconAnchorX = 15, iconAnchorY = 44, popupAnchorX = 1, popupAnchorY = -40),
+  blue8 = makeIcon("./Data/imgs/blue8.png", iconWidth = 30, iconHeight = 44, iconAnchorX = 15, iconAnchorY = 44, popupAnchorX = 1, popupAnchorY = -40),
+  blue9 = makeIcon("./Data/imgs/blue9.png", iconWidth = 30, iconHeight = 44, iconAnchorX = 15, iconAnchorY = 44, popupAnchorX = 1, popupAnchorY = -40),
+  blue10 = makeIcon("./Data/imgs/blue10.png", iconWidth = 30, iconHeight = 44, iconAnchorX = 15, iconAnchorY = 44, popupAnchorX = 1, popupAnchorY = -40)
 )
 
 red_icons <- iconList(
@@ -46,9 +51,11 @@ ui <- fluidPage(
   
   fluidRow(
     column(4,
-           h3(HTML("<b>Top 5 Recommended Neighborhoods</b>"), style = "text-align: center"),
-           
+           h3(HTML("<b>Top <i>N</i> Recommended Neighborhoods</b>"), style = "text-align: center"),
            h4(HTML("<b>Instructions:</b>")),
+           selectInput("N", label = HTML("<b>Select <i>N</i> Value:</b>"), 
+                       choices = list(1,3,5,10), 
+                       selected = 5),
            h4("Set your preferences for each attribute on a scale of 1 - 5, with 1 being low and 5 being high, and check the box next to your most important attribute."),
            h4(HTML("<b>Output:</b>")),
            h4("The map will provide the top 5 neighborhoods matching your search criteria. Clicking each marker will provide insights into each location and provide alternative recommendations within the area.")
@@ -160,10 +167,10 @@ server <- function(input, output) {
   #  c(input$population_rating[1], input$housing_rating[1], input$economy_rating[1], input$amenities_rating[1], input$traffic_rating[1]) / sum(c(input$population_rating[1], input$housing_rating[1], input$economy_rating[1], input$amenities_rating[1], input$traffic_rating[1]))
   #})
   
-  weights = c(1, 1, 1, 1, 1, 1) / 5
+  weights = c(1, 1, 1, 1, 1, 1) / 6
   
   fav_weights = reactive({
-    weights + check_boxes()
+    weights + (check_boxes()/6)
   })
   
   new_point = reactive({
@@ -178,7 +185,7 @@ server <- function(input, output) {
     sort(dis(), index.return=TRUE)})
   
   nearest = reactive({
-    data[dis2()$ix[1:5],]
+    data[dis2()$ix[1:input$N],]
     })
   
   output$map = renderLeaflet({
@@ -209,7 +216,7 @@ server <- function(input, output) {
  })
   
   output$table = renderDataTable(
-    data.frame(Rank=c(1:n), data[dis2()$ix,c('zipcode', 'city', 'state', 'population', 'avg_home_value', 'avg_rent', 'avg_salary', 'avg_temp', 'amenities_per_sqmile')]),
+    data.frame(Rank=c(1:nrow(data)), data[dis2()$ix,c('zipcode', 'city', 'state', 'population', 'avg_home_value', 'avg_rent', 'avg_salary', 'avg_temp', 'amenities_per_sqmile')]),
     options = list(
       lengthMenu = list(c(5, 10, 25, 50, 100), c('5', '10', '25', '50', '100')),
       pageLength = 5)
